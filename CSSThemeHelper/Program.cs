@@ -17,7 +17,7 @@ namespace CSSThemeHelper
 
         public static readonly string[] DefaultThemeFiles = FilePaths.DefaultThemeFiles; // Default theme CSS files
         public static readonly string[] AlternativeThemeFiles = FilePaths.AlternativeThemeFiles; // An alternative theme for comparison
-        public static readonly string[] OutputThemeFiles = FilePaths.OutputThemeFiles;
+        public static readonly string[] OutputThemeFiles = FilePaths.OutputThemeFiles; // Files to output modified themes
 
         static void Main(string[] args)
         {
@@ -26,8 +26,8 @@ namespace CSSThemeHelper
             CSSFileHelper fileHelper = new CSSFileHelper(PrimaryColor, DefaultPrimaryColor, DefaultThemeFiles, AlternativeThemeFiles, OutputThemeFiles);
 
             Console.WriteLine("Done");
-            //Console.WriteLine("Press any key to continue...");
-            //Console.ReadLine();
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadLine();
         }
 
         
