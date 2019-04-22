@@ -14,22 +14,23 @@ namespace CSSThemeHelper
         private double saturation = 1.0;
         private double luminosity = 1.0;
 
-        private const double scale = 240.0;
+        // was private
+        public const double SCALE = 240.0;
 
         public double Hue
         {
-            get { return hue * scale; }
-            set { hue = CheckRange(value / scale); }
+            get { return hue * SCALE; }
+            set { hue = CheckRange(value / SCALE); }
         }
         public double Saturation
         {
-            get { return saturation * scale; }
-            set { saturation = CheckRange(value / scale); }
+            get { return saturation * SCALE; }
+            set { saturation = CheckRange(value / SCALE); }
         }
         public double Luminosity
         {
-            get { return luminosity * scale; }
-            set { luminosity = CheckRange(value / scale); }
+            get { return luminosity * SCALE; }
+            set { luminosity = CheckRange(value / SCALE); }
         }
 
         private double CheckRange(double value)

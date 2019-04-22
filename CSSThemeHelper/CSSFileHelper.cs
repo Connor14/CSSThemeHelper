@@ -21,8 +21,18 @@ namespace CSSThemeHelper
         private List<CSSFile> _alternativeFilesContents;
         private List<CSSFile> _newFilesContents;
 
-        public CSSFileHelper(Color primaryColor, Color defaultPrimaryColor, string[] defaultFiles, string[] alternativeFiles, string[] outputFiles)
+        // This should be a CSSFile like the other files
+        private string _demoTenantFile;
+
+        public CSSFileHelper(Color primaryColor, 
+            Color defaultPrimaryColor, 
+            string[] defaultFiles, 
+            string[] alternativeFiles, 
+            string[] outputFiles,
+            string demoTenantFile)
         {
+            _demoTenantFile = demoTenantFile;
+
             bool sameFileCount = defaultFiles.Length == alternativeFiles.Length && defaultFiles.Length == outputFiles.Length;
             if (!sameFileCount)
             {
@@ -43,15 +53,20 @@ namespace CSSThemeHelper
                 CSSFile coorelatedDefaultFile = _defaultFilesContents.First(cssFile => cssFile.FileName == Path.GetFileName(file));
                 _newFilesContents.Add(new CSSFile(file, coorelatedDefaultFile.Contents));
             }
-
-            DoOperations();
         }
 
-        private void DoOperations()
+        // relativeColors: Should color variables use a standard HUE and saturation and lightness values?
+        public void UpdateThemeFiles(bool relativeColors = false)
         {
             HashSet<string> customColors = this.Harvest();
 
             string colorVariables = "\n:root {\n";
+
+            // create a variable for the HUE of the color to act as the foundation for every other color
+            if (relativeColors)
+            {
+                colorVariables += string.Format("\t--branding-color-hue: {0}; /* The HUE of the tenant's branding color */\n", (int)_primaryColor.GetHue());
+            }
 
             int counter = 1; // counter to label variable names
             foreach(string hexString in customColors)
@@ -70,13 +85,21 @@ namespace CSSThemeHelper
                     newHslColor = new HSLColor(_primaryColor.GetHue(), oldHslColor.Saturation, oldHslColor.Luminosity);
                 }
 
-                string newHexString = ColorToHex(newHslColor);
-
                 // new variable for the current hex string
                 string variableName = string.Format("--branding-color-{0}", counter);
                 string variableReference = string.Format("var({0})", variableName);
-                colorVariables += string.Format("\t{0}: {1};\n", variableName, newHexString);
 
+                if (relativeColors)
+                {
+                    string relativeColor = string.Format("hsl({0}, {1}%, {2}%)", "var(--branding-color-hue)", (int)(newHslColor.Saturation / HSLColor.SCALE * 100.0), (int)(newHslColor.Luminosity / HSLColor.SCALE * 100));
+                    colorVariables += string.Format("\t{0}: {1};\n", variableName, relativeColor);
+                }
+                else
+                {
+                    string newHexString = ColorToHex(newHslColor);
+                    colorVariables += string.Format("\t{0}: {1};\n", variableName, newHexString);
+                }
+                
                 foreach (CSSFile file in _newFilesContents)
                 {
                     file.Contents = file.Contents.Replace(hexString, variableReference);
@@ -93,6 +116,9 @@ namespace CSSThemeHelper
                 if(file.FileName == "metronic-customize.css")
                 {
                     file.Contents = colorVariables + file.Contents;
+
+                    // also write to the demo tenant.css file
+                    File.WriteAllText(_demoTenantFile, colorVariables);
                 }
 
                 File.WriteAllText(file.FilePath, file.Contents);
